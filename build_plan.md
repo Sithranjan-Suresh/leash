@@ -16,9 +16,9 @@
 7. [x] API + SSE stream + approvals + Duel endpoint
 8. [x] Policy Compiler endpoint (+ approval -> rule)
 9. [x] Red Team endpoint (fixed set, score, suggested rules)
-10. [ ] Frontend shell + design tokens
-11. [ ] Live Control page (Duel, feed, timeline) + mobile /approve
-12. [ ] Policy page, Red Team page
+10. [x] Frontend shell + design tokens
+11. [x] Live Control page (Duel, feed, timeline) + mobile /approve
+12. [x] Policy page, Red Team page
 13. [ ] Mock/replay mode, README, polish, tunnel test
 14. [ ] Video + submission
 
