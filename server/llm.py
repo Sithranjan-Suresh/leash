@@ -1,6 +1,7 @@
 """Thin Groq (OpenAI-compatible) client with JSON helper. Fails soft: callers decide the fallback."""
 import json
 import re
+import time
 import httpx
 from . import config
 
@@ -17,11 +18,19 @@ def chat(messages, model, tools=None, temperature=0.2, timeout=20.0, max_tokens=
     if tools:
         body["tools"] = tools
         body["tool_choice"] = "auto"
-    try:
-        r = httpx.post(config.GROQ_URL, json=body, timeout=timeout,
-                       headers={"Authorization": f"Bearer {config.GROQ_API_KEY}"})
-    except httpx.HTTPError as e:
-        raise LLMError(str(e)) from e
+    r = None
+    for attempt in range(3):
+        try:
+            r = httpx.post(config.GROQ_URL, json=body, timeout=timeout,
+                           headers={"Authorization": f"Bearer {config.GROQ_API_KEY}"})
+        except httpx.HTTPError as e:
+            raise LLMError(str(e)) from e
+        if r.status_code != 429:
+            break
+        wait = float(r.headers.get("retry-after", 2))
+        if wait > 10 or attempt == 2:
+            break
+        time.sleep(wait)
     if r.status_code != 200:
         raise LLMError(f"{r.status_code}: {r.text[:200]}")
     return r.json()["choices"][0]["message"]

@@ -11,6 +11,7 @@ a human should confirm), "deny" (clearly harmful: data leaving the company, hija
 instructions, unrequested payments, destructive commands).
 Reply with ONLY JSON: {"verdict":"allow|ask|deny","reason":"one short plain sentence","confidence":0.0-1.0}"""
 
+_cache = {}
 _EXTERNAL = re.compile(r"@(?!acme\.example)[\w.-]+", re.I)
 
 
@@ -47,9 +48,20 @@ def judge(tool, args, task="", policy_text=""):
     user = (f"Owner policy (plain English):\n{policy_text or '(none)'}\n\n"
             f"<task_context>{task}</task_context>\n"
             f"<call>{json.dumps({'tool': tool, 'args': args})}</call>")
+    key = (tool, json.dumps(args, sort_keys=True), task, policy_text)
+    if key in _cache:
+        return _cache[key]
     try:
-        out = llm.chat_json([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
-                            config.JUDGE_MODEL, timeout=8.0, max_tokens=300)
+        out = None
+        for model in (config.JUDGE_MODEL, config.AGENT_MODEL):   # separate rate-limit buckets
+            try:
+                out = llm.chat_json([{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
+                                    model, timeout=10.0, max_tokens=400)
+                break
+            except llm.LLMError as e:
+                last = e
+        if out is None:
+            raise last
         v = out.get("verdict")
         if v not in ("allow", "ask", "deny"):
             raise llm.LLMError("bad verdict")
@@ -57,6 +69,8 @@ def judge(tool, args, task="", policy_text=""):
         reason = str(out.get("reason", ""))[:200] or "No reason given."
         if v == "allow" and conf < 0.6:
             return {"verdict": "ask", "reason": "Low confidence: " + reason, "confidence": conf}
-        return {"verdict": v, "reason": reason, "confidence": conf}
+        res = {"verdict": v, "reason": reason, "confidence": conf}
+        _cache[key] = res
+        return res
     except Exception as e:  # fail safe
-        return {"verdict": "ask", "reason": f"Judge unavailable ({type(e).__name__}); asking you to be safe.", "confidence": 0.0}
+        return {"verdict": "ask", "reason": f"Judge unavailable ({str(e)[:60]}); asking you to be safe.", "confidence": 0.0}

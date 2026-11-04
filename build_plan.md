@@ -8,11 +8,11 @@
 
 ## Task list (ordered; done test)
 1. [x] Repo, .gitignore, env, docs pushed
-2. [ ] Backend scaffold (FastAPI, SQLite schema, config) — `uvicorn` starts, /api/health ok
-3. [ ] Interceptor + deterministic rules + unit tests — denied call never executes
-4. [ ] LLM judge (Groq) with fail-safe ask + mock mode
-5. [ ] Mock tools + demo agent loop (Groq tool use) — runs inbox task end to end
-6. [ ] Eval set (25 attacks / 25 benign) + eval.py with baselines — first numbers
+2. [x] Backend scaffold (FastAPI, SQLite schema, config) — `uvicorn` starts, /api/health ok
+3. [x] Interceptor + deterministic rules + unit tests — denied call never executes
+4. [x] LLM judge (Groq) with fail-safe ask + mock mode
+5. [x] Mock tools + demo agent loop (Groq tool use) — runs inbox task end to end
+6. [x] Eval set (25 attacks / 25 benign) + eval.py with baselines — first numbers
 7. [ ] API + SSE stream + approvals + Duel endpoint
 8. [ ] Policy Compiler endpoint (+ approval -> rule)
 9. [ ] Red Team endpoint (fixed set, score, suggested rules)
