@@ -27,6 +27,7 @@ Tests: `python -m pytest tests`. Eval: `python eval.py` (add `--mock` for the of
 ## Honest notes
 - The Duel's "hijacked agent" is a **scripted replay** of the tool calls a hijacked agent makes. We tried the live agent (`openai/gpt-oss-120b`) and it resisted the injected email, so the live mode is available (`/api/duel/run?mode=live`) but the demo uses the replay for reliability.
 - The eval set and the eval policy were written by us before looking at results, but they are small (25 + 25) and the judge is non-deterministic, so numbers move a little between runs. See `eval/results.json` for the latest run.
+- Red Team has two modes. **Rules only** (default) tests just your rules with no AI safety net: with the single default rule the score is about 35 (6/25 attacks stopped), and after accepting the 3 suggested rules it is 100 (25/25). That jump is partly by construction: the suggested rules target the attack categories in our fixed set, so 100 means "covers this test set", not "unbreakable". **Rules + AI judge** also lets the LLM judge decide anything the rules miss.
 - Groq's free tier limits tokens per minute; results are cached per call to stay under it.
 
 ## Tech stack and credits

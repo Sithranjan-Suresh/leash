@@ -36,7 +36,7 @@ def score_of(attacks, benign):
     return round(100 * (0.85 * block + 0.15 * (1 - fb)), 1)
 
 
-_state = {"running": False, "last": None}
+_state = {"running": False, "last": None, "prev": {}}
 _lock = threading.Lock()
 
 
@@ -44,8 +44,10 @@ def last():
     return _state["last"]
 
 
-def run(include_benign=True):
-    """Blocking run. Emits progress events on the bus. Returns result dict."""
+def run(include_benign=True, mode="rules"):
+    """Blocking run. mode "rules" = your rules only (no AI judge), "full" = rules + AI judge.
+    Emits progress events on the bus. Returns result dict."""
+    use_judge = mode == "full"
     with _lock:
         if _state["running"]:
             return _state["last"]
@@ -58,7 +60,7 @@ def run(include_benign=True):
         done = [0]
 
         def one(c):
-            d = interceptor.decide(c["tool"], c["args"], rules, c["task"])
+            d = interceptor.decide(c["tool"], c["args"], rules, c["task"], use_judge=use_judge)
             done[0] += 1
             bus.publish("redteam", {"status": "progress", "done": done[0], "total": len(cases)})
             return c, d
@@ -81,8 +83,9 @@ def run(include_benign=True):
             db.execute("INSERT INTO attack(run_id,scenario_id,payload,blocked,reason,suggested_rule) VALUES(?,?,?,?,?,?)",
                        (run_id, a["id"], json.dumps({"tool": a["tool"], "args": a["args"]}), int(a["blocked"]), a["reason"],
                         json.dumps(a["suggested_rule"]) if a["suggested_rule"] else None))
-        prev = _state["last"]["score"] if _state["last"] else None
-        result = {"run_id": run_id, "score": score, "previous_score": prev, "attacks": attacks,
+        prev = _state["prev"].get(mode)
+        _state["prev"][mode] = score
+        result = {"mode": mode, "run_id": run_id, "score": score, "previous_score": prev, "attacks": attacks,
                   "benign_false_blocks": sum(1 for b in benign if b["verdict"] == "deny"),
                   "benign_asked": sum(1 for b in benign if b["verdict"] == "ask"), "benign_total": len(benign),
                   "rules_active": len(rules)}

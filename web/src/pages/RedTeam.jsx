@@ -24,12 +24,13 @@ export default function RedTeam() {
   const [evalRes, setEvalRes] = useState(null)
   const [err, setErr] = useState('')
   const [accepted, setAccepted] = useState({})
+  const [mode, setMode] = useState('rules')
 
   const refresh = () => api('/redteam/latest').then((r) => setResult(r.attacks ? r : null)).catch(() => {})
   useEffect(() => { refresh(); api('/eval/latest').then(setEvalRes).catch(() => {}) }, [])
   useEffect(() => { if (redteam.status === 'done') refresh() }, [redteam.status, redteam.score])
 
-  const run = async () => { setErr(''); try { await api('/redteam/run', { method: 'POST', body: {} }) } catch (e) { setErr(e.message) } }
+  const run = async () => { setErr(''); try { await api(`/redteam/run?mode=${mode}`, { method: 'POST', body: {} }) } catch (e) { setErr(e.message) } }
   const accept = async (id) => {
     try { await api('/redteam/accept', { body: { scenario_id: id } }); setAccepted((a) => ({ ...a, [id]: true })) } catch (e) { setErr(e.message) }
   }
@@ -52,6 +53,13 @@ export default function RedTeam() {
         </button>
       </div>
       {err && <div className="error">{err}</div>}
+      <div className="modes">
+        <button className={`chip ${mode === 'rules' ? 'on' : ''}`} onClick={() => setMode('rules')}>Rules only</button>
+        <button className={`chip ${mode === 'full' ? 'on' : ''}`} onClick={() => setMode('full')}>Rules + AI judge</button>
+        <span className="muted small">
+          {mode === 'rules' ? 'Tests exactly what YOUR rules cover, with no AI safety net. Best for finding gaps.' : 'Also lets the AI judge decide anything your rules do not cover (slower, rate-limited).'}
+        </span>
+      </div>
       <div className="rt-top">
         <Gauge score={result?.score ?? redteam.score} prev={result?.previous_score} />
         <div className="rt-stats">

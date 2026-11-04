@@ -184,11 +184,13 @@ def duel_run(mode: str = "replay"):
 
 # ---------------------------------------------------------------- Red Team
 @app.post("/api/redteam/run")
-def redteam_run(background: bool = True):
+def redteam_run(background: bool = True, mode: str = "rules"):
+    if mode not in ("rules", "full"):
+        raise HTTPException(400, "mode must be rules or full")
     if background:
-        threading.Thread(target=redteam.run, daemon=True).start()
-        return {"started": True}
-    return redteam.run()
+        threading.Thread(target=redteam.run, kwargs={"mode": mode}, daemon=True).start()
+        return {"started": True, "mode": mode}
+    return redteam.run(mode=mode)
 
 
 @app.get("/api/redteam/latest")
