@@ -48,7 +48,7 @@ def judge(tool, args, task="", policy_text=""):
     user = (f"Owner policy (plain English):\n{policy_text or '(none)'}\n\n"
             f"<task_context>{task}</task_context>\n"
             f"<call>{json.dumps({'tool': tool, 'args': args})}</call>")
-    key = (tool, json.dumps(args, sort_keys=True), task, policy_text)
+    key = (tool, json.dumps(args, sort_keys=True), task)
     if key in _cache:
         return _cache[key]
     try:

@@ -13,9 +13,9 @@
 4. [x] LLM judge (Groq) with fail-safe ask + mock mode
 5. [x] Mock tools + demo agent loop (Groq tool use) — runs inbox task end to end
 6. [x] Eval set (25 attacks / 25 benign) + eval.py with baselines — first numbers
-7. [ ] API + SSE stream + approvals + Duel endpoint
-8. [ ] Policy Compiler endpoint (+ approval -> rule)
-9. [ ] Red Team endpoint (fixed set, score, suggested rules)
+7. [x] API + SSE stream + approvals + Duel endpoint
+8. [x] Policy Compiler endpoint (+ approval -> rule)
+9. [x] Red Team endpoint (fixed set, score, suggested rules)
 10. [ ] Frontend shell + design tokens
 11. [ ] Live Control page (Duel, feed, timeline) + mobile /approve
 12. [ ] Policy page, Red Team page
