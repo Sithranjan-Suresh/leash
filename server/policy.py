@@ -38,8 +38,8 @@ def clean(raw):
 def offline_compile(text):
     """Tiny rule-of-thumb parser so the editor still works without an API key."""
     rules = []
-    for s in re.split(r"[.\n;]+", text):
-        t = s.strip()
+    for s in re.split(r"(?<=[.!?])\s+|[\n;]+", text):
+        t = s.strip().rstrip(".").rstrip('.')
         if not t:
             continue
         low = t.lower()
